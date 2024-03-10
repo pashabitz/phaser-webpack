@@ -110,9 +110,11 @@ export class NewGame extends Scene
         // move the paddles based on keyboard input
         [this.paddles.left, this.paddles.right].forEach(paddle => {
             if (paddle.cursors.down.isDown) {
+                if (paddle.sprite.y + paddleHalf > gameConfig.height) return;
                 paddle.sprite.y += 5;
             }
             if (paddle.cursors.up.isDown) {
+                if (paddle.sprite.y - paddleHalf < 0) return;
                 paddle.sprite.y -= 5;
             }
         });
