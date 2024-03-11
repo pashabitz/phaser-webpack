@@ -18,15 +18,19 @@ export class NewGame extends Scene
 
     create ()
     {
-        const movement = { x: 3, y: 2 };
+        const makePlayer = () => {
+            this.player = this.add.sprite(gameConfig.width / 2, gameConfig.height / 2, 'player')
+            .setScale(0.1);            
+        }
+        this.movement = { x: 2, y: 2 };
         const gameConfig = this.sys.game.config;
         this.add.image(gameConfig.width / 2, gameConfig.height / 2, 'background');
-        this.add.sprite(gameConfig.width / 2, gameConfig.height / 2, 'player')
-            .setScale(0.1);
+        makePlayer();
+        this.hitCount = 0;
 
         this.playerMovement = {
-            x: movement.x,
-            y: movement.y,
+            x: this.movement.x,
+            y: this.movement.y,
             direction: 1
         };
 
@@ -34,8 +38,13 @@ export class NewGame extends Scene
         this.sound.add('end');
 
         this.input.on('pointerdown', (pointer) => {
-            this.playerMovement.x = this.playerMovement.x === movement.x ? 0 : movement.x;
-            this.playerMovement.y = this.playerMovement.y === movement.y ? 0 : movement.y;
+            if (this.gameState === 0) {
+                this.gameState = 1;
+                makePlayer();
+            } else {
+                this.playerMovement.x = this.playerMovement.x === movement.x ? 0 : movement.x;
+                this.playerMovement.y = this.playerMovement.y === movement.y ? 0 : movement.y;    
+            }
         });
 
 
@@ -69,7 +78,8 @@ export class NewGame extends Scene
         }
         const gameConfig = this.sys.game.config;
         
-        const player = this.children.getChildren().find(child => child.texture.key === 'player');
+        // const player = this.children.getChildren().find(child => child.texture.key === 'player');
+        const player = this.player;
 
         // collision detection with top and bottom
         if (player.y <= 0 || player.y >= gameConfig.height) {
@@ -79,11 +89,19 @@ export class NewGame extends Scene
         const bounceOffPaddle = () => {
             this.playerMovement.direction *= -1;
             this.sound.play('jump');
+            this.hitCount++;
+            if (this.hitCount > 4) {
+                this.playerMovement.x *= 1.5;
+                this.hitCount = 0;
+            }
         }
         const gameOver = () => {
             this.sound.play('end');
             player.destroy();
             this.gameState = 0;
+            this.playerMovement.x = this.movement.x;
+            this.paddles.left.sprite.y = gameConfig.height / 2;
+            this.paddles.right.sprite.y = gameConfig.height / 2;
         }
 
         const paddleHalf = this.paddles.config.height / 2;
